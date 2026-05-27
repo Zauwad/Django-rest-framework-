@@ -25,6 +25,7 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('', include('todos.urls')),
     path('', include('api.urls')),
+    path('movie/', include('watchlist_app.api.urls'))
 ]
 
 # 26-> mysite.com/hello

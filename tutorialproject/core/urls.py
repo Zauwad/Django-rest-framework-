@@ -24,7 +24,7 @@ urlpatterns = [                    # Declares list of URLResolver/URLPattern ele
     path('admin/', admin.site.urls),                    # Configures admin routes, path() outputs a URLPattern object
     path('', include('todos.urls')),                    # Nesting todos URLs: include() outputs nested route tuple; path() outputs a URLResolver object
     path('', include('api.urls')),                    # Nesting api URLs: include() outputs nested route tuple; path() outputs a URLResolver object
-    path('movie/', include('watchlist_app.api.urls'))                    # Nesting movie API: include() outputs nested route tuple; path() outputs a URLResolver object
+    path('', include('watchlist_app.api.urls'))                    # Nesting movie API: include() outputs nested route tuple; path() outputs a URLResolver object
 ]                    # Ends declaration of urlpatterns list
 
 # 26-> mysite.com/hello

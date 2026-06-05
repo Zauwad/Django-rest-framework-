@@ -6,14 +6,14 @@ from django.http import JsonResponse                    # Imports JsonResponse t
 from django.shortcuts import render
 from rest_framework.decorators import api_view                    # Imports render helper function for HTML templates, outputs renderer callable (E.g., <function render at 0x...>)
 
-from .models import Movie                    # Imports Movie model class from local models module, outputs Django model reference (E.g., <class 'watchlist_app.models.Movie'>)
+from .models import  WatchList                    # Imports Movie model class from local models module, outputs Django model reference (E.g., <class 'watchlist_app.models.Movie'>)
 
 # Create your views here.
 
 #Function based view. (vanilla django way)
 @api_view(['GET'])
 def movie_list(request):                    # Function-based view handling HttpRequest; outputs/returns a JsonResponse object (E.g., <JsonResponse status_code=200, "application/json">)
-    movies = Movie.objects.all()                    # Queries database; outputs a QuerySet containing all Movie model instances (E.g., <QuerySet [<Movie: cars 1>]>)
+    movies = WatchList.objects.all()                    # Queries database; outputs a QuerySet containing all Movie model instances (E.g., <QuerySet [<Movie: cars 1>]>)
     # print(list(movies.values()))
     # print(movies) -> only quertyset. <QuerySet [<Movie: cars 1>]>
     # 
@@ -30,7 +30,7 @@ def movie_list(request):                    # Function-based view handling HttpR
 
 @api_view(['GET'])
 def movie_details(request, pk):                    # Function-based view handling single movie detail request; outputs/returns a JsonResponse object (E.g., <JsonResponse status_code=200, "application/json">)
-    movie = Movie.objects.get(pk=pk)                    # Queries single movie matching pk; outputs a single Movie model instance (E.g., <Movie: cars 1>)
+    movie = WatchList.objects.get(pk=pk)                    # Queries single movie matching pk; outputs a single Movie model instance (E.g., <Movie: cars 1>)
     data = {                    # Dictionary holding attributes of single movie, outputs a dictionary object (E.g., {'name': 'cars 1', 'description': 'discrip1', 'active': True})
         'name': movie.name,                    # Reads name field of the movie instance; outputs a string (E.g., 'cars 1')
         'description': movie.description,                    # Reads description field of the movie instance; outputs a text string (E.g., 'discrip1')

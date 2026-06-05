@@ -1,31 +1,44 @@
 from rest_framework import serializers, validators                    # Imports DRF serializers to convert model instances to/from JSON
-from watchlist_app.models import Movie                    # Imports Movie model class from local watchlist_app models
+from watchlist_app.models import WatchList, StreamPlatform                    # Imports Movie model class from local watchlist_app models
 
 #BELOW IS THE SERIALIZERS.MODELSERIALIZER CLASS FOR MOVIE MODEL. THIS CLASS AUTOMATICALLY GENERATES FIELDS BASED ON THE MOVIE MODEL, AND ALSO INCLUDES BASIC VALIDATION LOGIC. IT IS A MORE CONCISE WAY TO DEFINE A SERIALIZER WHEN YOU WANT TO USE ALL OR MOST OF THE MODEL FIELDS WITHOUT CUSTOM VALIDATION LOGIC.
 #IT HAS CREATE AND UPDATE METHODS BUILT IN, SO YOU DONT NEED TO DEFINE THEM UNLESS YOU WANT TO OVERRIDE THE DEFAULT BEHAVIOR. IT ALSO AUTOMATICALLY HANDLES THE CREATION OF NEW MOVIE INSTANCES AND UPDATING EXISTING ONES BASED ON THE MODEL FIELDS, WITHOUT REQUIRING EXPLICIT CREATE/UPDATE METHODS UNLESS CUSTOM LOGIC IS NEEDED.
-class MovieSerializer(serializers.ModelSerializer):                    # Serializer class for Movie model, using DRF's ModelSerializer for automatic field generation
+class WatchListSerializer(serializers.ModelSerializer):                    # Serializer class for Movie model, using DRF's ModelSerializer for automatic field generation
     class Meta:
-        model = Movie
+        model = WatchList
         fields = "__all__"
         # fields = ['id', 'name', 'description']  # Explicitly specifying fields to include in the serializer output (id, name, description). Wont show 'active' field in API responses.
         #exclude = ['name'] # Exclude the "name" field from the API responses. However, it can still be used for input when creating/updating Movie instances through the API.
     
-    len_name = serializers.SerializerMethodField() #This adds a custom read-only field to the serializer output that calculates the length of the "name" field for each Movie instance. The value of this field is determined by the get_len_name method defined below. It will be included in the API responses as an additional field alongside the model fields.
-    def get_len_name(self, object):
-        return len(object.name)
     
-    
-    def validate_name(self, value):                   
-        if len(value) < 2:
-            raise serializers.ValidationError("name too short ")
-        else:
-            return value
 
-    def validate(self, data):   
-        if data["name"] == data["description"]:
-            raise serializers.ValidationError("name And description has to be different!!")
-        else:
-            return data
+#One stream platform can have many movies, but one movie can only be on one streaming platform.
+class StreamPlatformSerializer(serializers.ModelSerializer):
+    #Can add custom fields like this to add to api responses
+    watchlist = WatchListSerializer(many=True, read_only=True)   #custom field to get the list of movies associated with each streaming platform. This field uses the WatchListSerializer to serialize the related Movie instances, and it is set to read-only because it is derived from the relationship defined in the StreamPlatform model (the related_name='watchlist' in the ForeignKey). This allows you to include the list of movies for each streaming platform in the API responses without allowing clients to modify this relationship directly through this serializer.
+    
+    class Meta:
+        model = StreamPlatform
+        fields = "__all__"    
+    
+    
+    #CUSTOM FIELD
+    # len_name = serializers.SerializerMethodField() #This adds a custom read-only field to the serializer output that calculates the length of the "name" field for each Movie instance. The value of this field is determined by the get_len_name method defined below. It will be included in the API responses as an additional field alongside the model fields.
+    # def get_len_name(self, object):
+    #     return len(object.name)
+    
+    #VALIDATION
+    # def validate_name(self, value):                   
+    #     if len(value) < 2:
+    #         raise serializers.ValidationError("name too short ")
+    #     else:
+    #         return value
+
+    # def validate(self, data):   
+    #     if data["name"] == data["description"]:
+    #         raise serializers.ValidationError("name And description has to be different!!")
+    #     else:
+    #         return data
             
 
 

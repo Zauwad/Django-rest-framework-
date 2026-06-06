@@ -48,12 +48,12 @@ class WatchDetailsApiView(APIView):                    # Class-based API view fo
 class StreamPlatformApiView(APIView):
     def get(self, request):
         platforms = StreamPlatform.objects.all()
-        serializer = StreamPlatformSerializer(platforms, many=True)
+        serializer = StreamPlatformSerializer(platforms, many=True, context={'request': request})
         return Response(serializer.data, status = status.HTTP_200_OK)
     
     def post(self, request):
         serializer = StreamPlatformSerializer(data = request.data)
-        if serializer.isValid():
+        if serializer.is_valid():
             serializer.save()
             return Response(serializer.data, status = status.HTTP_201_CREATED)
         else:
@@ -68,7 +68,7 @@ class StreamPlatformDetailsApiView(APIView):
     def put(self, request, pk):
         platform = StreamPlatform.objects.get(pk=pk)
         serializer = StreamPlatformSerializer(platform, data =request.data)
-        if serializer.isValid():
+        if serializer.is_valid():
             serializer.save()
             return Response(serializer.data)
         else:

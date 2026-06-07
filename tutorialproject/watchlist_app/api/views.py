@@ -7,24 +7,33 @@ from watchlist_app.api.serializers import ReviewSerializer, StreamPlatformSerial
 from watchlist_app.models import Review, StreamPlatform, WatchList                    # Imports Movie model, outputs Django model class definition
 
 
-class ReviewDetail(mixins.RetrieveModelMixin, generics.GenericAPIView):
+class ReviewList(generics.ListCreateAPIView): #This class-based view combines DRF's ListCreateAPIView to provide GET (list) and POST (create) functionality for Review instances, while inheriting from GenericAPIView for additional features like authentication and permissions. Its basically a combination of ListModelMixin and CreateModelMixin, but it provides a more concise way to implement these common patterns without needing to explicitly define the get() and post() methods, as they are already implemented by the ListCreateAPIView.  
     queryset = Review.objects.all()
     serializer_class = ReviewSerializer
 
-    def get(self, request, *args, **kwargs):
-        return self.retrieve(request, *args, **kwargs) #This method handles GET requests for retrieving a single Review instance based on the primary key (pk) provided in the URL. It uses the RetrieveModelMixin's retrieve() method to perform the retrieval operation, which will return a Response object containing the serialized Review data if found, or an appropriate error response if not found.
-
-class ReviewList(mixins.ListModelMixin,
-                 mixins.CreateModelMixin,
-                 generics.GenericAPIView):  #This class-based view combines DRF's ListModelMixin and CreateModelMixin to provide GET (list) and POST (create) functionality for Review instances, while inheriting from GenericAPIView for additional features like authentication and permissions. The queryset and serializer_class attributes define the data source and serialization logic for this view, allowing it to handle listing all reviews and creating new reviews through the API.
-    queryset = Review.objects.all()     #These attributes have to be named exactly as shown for the mixins to work properly. The queryset attribute specifies the set of Review instances that this view will operate on, while the serializer_class attribute specifies the serializer that will be used to serialize and deserialize Review instances for API responses and requests, respectively. By defining these attributes, the ListModelMixin and CreateModelMixin can automatically handle GET requests to list all reviews and POST requests to create new reviews without needing to explicitly define these methods in the view class.
+class ReviewDetail(generics.RetrieveUpdateDestroyAPIView):
+    queryset = Review.objects.all()
     serializer_class = ReviewSerializer
+
+
+# class ReviewDetail(mixins.RetrieveModelMixin, generics.GenericAPIView):
+#     queryset = Review.objects.all()
+#     serializer_class = ReviewSerializer
+
+#     def get(self, request, *args, **kwargs):
+#         return self.retrieve(request, *args, **kwargs) #This method handles GET requests for retrieving a single Review instance based on the primary key (pk) provided in the URL. It uses the RetrieveModelMixin's retrieve() method to perform the retrieval operation, which will return a Response object containing the serialized Review data if found, or an appropriate error response if not found.
+
+# class ReviewList(mixins.ListModelMixin,
+#                  mixins.CreateModelMixin,
+#                  generics.GenericAPIView):  #This class-based view combines DRF's ListModelMixin and CreateModelMixin to provide GET (list) and POST (create) functionality for Review instances, while inheriting from GenericAPIView for additional features like authentication and permissions. The queryset and serializer_class attributes define the data source and serialization logic for this view, allowing it to handle listing all reviews and creating new reviews through the API.
+#     queryset = Review.objects.all()     #These attributes have to be named exactly as shown for the mixins to work properly. The queryset attribute specifies the set of Review instances that this view will operate on, while the serializer_class attribute specifies the serializer that will be used to serialize and deserialize Review instances for API responses and requests, respectively. By defining these attributes, the ListModelMixin and CreateModelMixin can automatically handle GET requests to list all reviews and POST requests to create new reviews without needing to explicitly define these methods in the view class.
+#     serializer_class = ReviewSerializer
     
-    def get(self, request, *args, **kwargs):
-        return self.list(request, *args, **kwargs)
+#     def get(self, request, *args, **kwargs):
+#         return self.list(request, *args, **kwargs)
     
-    def post(self, request, *args, **kwargs):
-        return self.create(self, request, *args, **kwargs)
+#     def post(self, request, *args, **kwargs):
+#         return self.create(self, request, *args, **kwargs)
 
 
 

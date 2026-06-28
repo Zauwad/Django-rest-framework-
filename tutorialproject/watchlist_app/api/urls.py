@@ -1,6 +1,6 @@
 from django.urls import  path                    # Imports path function to define individual URL patterns
 # from .views import movie_details, movie_list                    # Imports details and list views from local views module
-from .views import ReviewDetail, ReviewList, WatchListApiView, WatchDetailsApiView, StreamPlatformApiView, StreamPlatformDetailsApiView
+from .views import ReviewCreate, ReviewDetail, ReviewList, WatchListApiView, WatchDetailsApiView, StreamPlatformApiView, StreamPlatformDetailsApiView
 
 
 urlpatterns = [                    # List mapping movie URLs to their respective views (API routes)
@@ -11,8 +11,9 @@ urlpatterns = [                    # List mapping movie URLs to their respective
     # path('reviews/', ReviewList.as_view(), name="review-list"),
     # path('reviews/<int:pk>', ReviewDetail.as_view(), name='review-detail'),
 
-    path('platforms/<int:pk>/reviews', ReviewList.as_view(), name="review-list"),
-    path('platforms/reviews/<int:pk>', ReviewDetail.as_view(), name="review-detail")
+    path('platforms/<int:pk>/reviews', ReviewList.as_view(), name="review-list"), #This is for listing all reviews of a specific platform, 
+    path('platforms/reviews/<int:pk>', ReviewDetail.as_view(), name="review-detail"), #This is for getting a specific review, 
+    path('platforms/<int:pk>/reviews-create', ReviewCreate.as_view(), name="review-create") #This is for creating a specific review
 ]                    # Ends urlpatterns list
 
 # 26-> mysite.com/hello

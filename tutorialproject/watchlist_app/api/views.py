@@ -162,19 +162,24 @@ class StreamPlatformDetailsApiView(APIView):
 
 #* Concrete View Classes (Built-in APIView classes that provide complete functionality for common patterns, combining multiple mixins into a single class)
 class ReviewList(generics.ListAPIView): #This class-based view combines DRF's ListCreateAPIView to provide GET (list) and POST (create) functionality for Review instances, while inheriting from GenericAPIView for additional features like authentication and permissions. Its basically a combination of ListModelMixin and CreateModelMixin, but it provides a more concise way to implement these common patterns without needing to explicitly define the get() and post() methods, as they are already implemented by the ListCreateAPIView.  
-    #queryset = Review.objects.all()
+    #queryset = Review.objects.all()  #This is the default approach for list api view from generics to show all items. 
     serializer_class = ReviewSerializer
 
+    #* Overriding queryset
     def get_queryset(self): #The get_queryset() method is used to retrieve a queryset of Review instances based on the primary key (pk) provided in the URL, such as /platforms/1/reviews/. 
         pk = self.kwargs['pk'] #The kwargs attribute is a dictionary that contains the keyword arguments passed to the view, such as the primary key (pk) from the URL.
         return Review.objects.filter(watchlist = pk) # The filter() method is used to filter the Review instances based on the primary key (pk) of the watchlist.
 
 class ReviewDetail(generics.RetrieveUpdateDestroyAPIView):
-    queryset = Review.objects.all()
-    serializer_class = ReviewSerializer
+    queryset = Review.objects.all() 
+    serializer_class = ReviewSerializer  #Not having to filtere cause the url already contains the primary key of the watchlist. and its a RetrieveUpdateDestroyAPIView which means it will handle GET, PUT, DELETE requests.
 
 class ReviewCreate(generics.createAPIView):
     serializer_class = ReviewSerializer
 
-    def perform_create()
+    def perform_create(self, serializer):
+        pk = self.kwargs.get("pk") #gets the primary key of the watchlist(movie) from the url 
+        specific_movie = WatchList.objects.get(pk=pk) #gets the watchlist object(movie) based on the primary key
+
+        serializer.save(watchlist=specific_movie) #saves the review object only for the specific watchlist(movie) so as to not create reviews for other movies
 

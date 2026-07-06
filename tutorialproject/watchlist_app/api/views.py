@@ -2,14 +2,17 @@ from rest_framework.decorators import api_view                    # Imports api_
 from rest_framework.response import Response                    # Imports Response class, outputs Response class definition
 from rest_framework import generics, mixins, status                    # Imports status module for HTTP status codes, outputs status namespace
 from rest_framework.views import APIView                    # Imports APIView class for class-based views
+from rest_framework import viewsets
+from django.shortcuts import get_object_or_404
 
 from watchlist_app.api.serializers import ReviewSerializer, StreamPlatformSerializer, WatchListSerializer                    # Imports MovieSerializer, outputs serializer class definition
 from watchlist_app.models import Review, StreamPlatform, WatchList                    # Imports Movie model, outputs Django model class definition
 
 
+
 # Function-based API views using DRF features for more robust handling of HTTP methods, validation, and responses. Each view handles specific operations for Movie instances, utilizing MovieSerializer for data serialization and validation, and Response for consistent API responses.
 # @api_view(['GET', 'POST'])                    # Limits endpoint to GET and POST methods, outputs decorated view callable function
-# def movie_list(request):                    # API view handling GET (list) and POST (create), outputs/returns a Response object (E.g., <Response status_code=200, "application/json">)
+#* def movie_list(request):                    # API view handling GET (list) and POST (create), outputs/returns a Response object (E.g., <Response status_code=200, "application/json">)
 #     if request.method == 'GET':                    # Checks HTTP request method, outputs/evaluates to a boolean (E.g., True)
 #         movies = WatchList.objects.all()                    # Queries database for all Movie instances; outputs a QuerySet of Movie instances (E.g., <QuerySet [<Movie: Inception>]>)
 #         serializer = WatchListSerializer(movies, many=True)                    # Instantiates MovieSerializer; outputs a MovieSerializer instance containing serialized movie list details (E.g., serializer.data: [{'id': 1, 'name': 'Inception', 'description': 'Dream heist', 'active': True}])
@@ -29,7 +32,7 @@ from watchlist_app.models import Review, StreamPlatform, WatchList              
 
 
 # @api_view(['GET', 'PUT', 'DELETE'])                    # Limits endpoint to GET, PUT, and DELETE methods, outputs decorated view callable (E.g., <function movie_details at 0x...>)
-# def movie_details(request, pk):                    # API view for single movie operations, outputs/returns a Response object (E.g., <Response status_code=200, "application/json">)
+#* def movie_details(request, pk):                    # API view for single movie operations, outputs/returns a Response object (E.g., <Response status_code=200, "application/json">)
 #     try:                    # Begins lookup exception block, outputs control flow direction
 #         movie = WatchList.objects.get(pk=pk)                    # Queries DB for single movie matching pk; outputs a single Movie model instance (E.g., <Movie: Inception>)
 #     except WatchList.DoesNotExist:                    # Catches DoesNotExist exception if pk is missing, outputs exception instance
@@ -174,7 +177,7 @@ class ReviewDetail(generics.RetrieveUpdateDestroyAPIView):
     queryset = Review.objects.all() 
     serializer_class = ReviewSerializer  #Not having to filtere cause the url already contains the primary key of the watchlist. and its a RetrieveUpdateDestroyAPIView which means it will handle GET, PUT, DELETE requests.
 
-class ReviewCreate(generics.createAPIView):
+class ReviewCreate(generics.CreateAPIView):
     serializer_class = ReviewSerializer
 
     def perform_create(self, serializer):
@@ -182,4 +185,40 @@ class ReviewCreate(generics.createAPIView):
         specific_movie = WatchList.objects.get(pk=pk) #gets the watchlist object(movie) based on the primary key
 
         serializer.save(watchlist=specific_movie) #saves the review object only for the specific watchlist(movie) so as to not create reviews for other movies
+                                                  # defined that watchlist = specific_movie, so watchlist parameter will be filled auto
+
+
+
+
+
+#This one can be used for both list and details at the same time using the routers (simple router) #viewsets are the best way to handle list and details at the same time. #ViewSet is a class-based view that provides a way to handle multiple HTTP methods for a single resource, such as GET, POST, PUT, PATCH, and DELETE, all within a single class. It is a more concise way to implement these common patterns without needing to explicitly define each HTTP method as a separate method in the view class, as they are already implemented by the ViewSet class. In this case, the StreamPlatformViewSet class provides a way to handle all HTTP methods for the StreamPlatform model, such as listing all stream platforms, retrieving a specific stream platform, and performing CRUD operations on stream platforms.
+#* class StreamPlatformViewSet(viewsets.ViewSet): 
+#     """
+#     A simple ViewSet for listing or retrieving users.
+#     """
+#     def list(self, request):
+#         queryset = StreamPlatform.objects.all()
+#         serializer = StreamPlatformSerializer(queryset, many=True)
+#         return Response(serializer.data)
+
+#     def retrieve(self, request, pk=None):
+#         queryset = StreamPlatform.objects.all()
+#         platform = get_object_or_404(queryset, pk=pk)
+#         serializer = StreamPlatformSerializer(platform)
+#         return Response(serializer.data)
+
+#     def create(self, request):
+#         serializer = StreamPlatformSerializer(data=request.data)
+#         if serializer.is_valid():
+#             serializer.save()
+#             return Response(serializer.data)
+#         else:
+#             return Response(serializer.errors)     
+
+
+
+#* This is ModelViewSet for simple router. It handles all the methods (List, Retrieve, Create, Update, Delete) automatically.
+class StreamPlatformModelViewSet(viewsets.ModelViewSet):    #
+        queryset = StreamPlatform.objects.all()
+        serializer_class = StreamPlatformSerializer
 

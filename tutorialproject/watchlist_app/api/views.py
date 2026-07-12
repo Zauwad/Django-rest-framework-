@@ -11,7 +11,7 @@ from watchlist_app.models import Review, StreamPlatform, WatchList              
 
 
 # Function-based API views using DRF features for more robust handling of HTTP methods, validation, and responses. Each view handles specific operations for Movie instances, utilizing MovieSerializer for data serialization and validation, and Response for consistent API responses.
-# @api_view(['GET', 'POST'])                    # Limits endpoint to GET and POST methods, outputs decorated view callable function
+#* @api_view(['GET', 'POST'])                    # Limits endpoint to GET and POST methods, outputs decorated view callable function
 #* def movie_list(request):                    # API view handling GET (list) and POST (create), outputs/returns a Response object (E.g., <Response status_code=200, "application/json">)
 #     if request.method == 'GET':                    # Checks HTTP request method, outputs/evaluates to a boolean (E.g., True)
 #         movies = WatchList.objects.all()                    # Queries database for all Movie instances; outputs a QuerySet of Movie instances (E.g., <QuerySet [<Movie: Inception>]>)
@@ -31,7 +31,7 @@ from watchlist_app.models import Review, StreamPlatform, WatchList              
 
 
 
-# @api_view(['GET', 'PUT', 'DELETE'])                    # Limits endpoint to GET, PUT, and DELETE methods, outputs decorated view callable (E.g., <function movie_details at 0x...>)
+#* @api_view(['GET', 'PUT', 'DELETE'])                    # Limits endpoint to GET, PUT, and DELETE methods, outputs decorated view callable (E.g., <function movie_details at 0x...>)
 #* def movie_details(request, pk):                    # API view for single movie operations, outputs/returns a Response object (E.g., <Response status_code=200, "application/json">)
 #     try:                    # Begins lookup exception block, outputs control flow direction
 #         movie = WatchList.objects.get(pk=pk)                    # Queries DB for single movie matching pk; outputs a single Movie model instance (E.g., <Movie: Inception>)
@@ -136,8 +136,8 @@ class StreamPlatformDetailsApiView(APIView):
 
 
 
-#* Generic View Classes (Mixin-based Views) 
-# class ReviewList(mixins.ListModelMixin,
+# Generic View Classes (Mixin-based Views) 
+#* class ReviewList(mixins.ListModelMixin,
 #                  mixins.CreateModelMixin,
 #                  generics.GenericAPIView):  #This class-based view combines DRF's ListModelMixin and CreateModelMixin to provide GET (list) and POST (create) functionality for Review instances, while inheriting from GenericAPIView for additional features like authentication and permissions. The queryset and serializer_class attributes define the data source and serialization logic for this view, allowing it to handle listing all reviews and creating new reviews through the API.
 #     queryset = Review.objects.all()     #These attributes have to be named exactly as shown for the mixins to work properly. The queryset attribute specifies the set of Review instances that this view will operate on, while the serializer_class attribute specifies the serializer that will be used to serialize and deserialize Review instances for API responses and requests, respectively. By defining these attributes, the ListModelMixin and CreateModelMixin can automatically handle GET requests to list all reviews and POST requests to create new reviews without needing to explicitly define these methods in the view class.

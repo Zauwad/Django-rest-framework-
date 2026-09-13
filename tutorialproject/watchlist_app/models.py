@@ -1,5 +1,6 @@
 from django.db import models                    # Imports models module containing Django DB field types
 from django.core.validators import MinValueValidator, MaxValueValidator
+from django.contrib.auth.models import User
 # Create your models here.
 
 
@@ -31,4 +32,5 @@ class Review(models.Model):
     created = models.DateTimeField(auto_now_add=True)
     updated = models.DateTimeField(auto_now=True) #Here auto_now updates the field every time the object is saved
     
-    watchlist = models.ForeignKey(WatchList, on_delete=models.CASCADE, related_name="reviews")
+    watchlist = models.ForeignKey(WatchList, on_delete=models.CASCADE, related_name="reviews")   #Because of related_name="reviews", Django automatically gives WatchList reverse access to all its reviews via watchlist_instance.reviews.all(). This is also why reviews = ReviewSerializer(many=True, read_only=True) in WatchListSerializer works
+    review_user = models.ForeignKey(User, on_delete=models.CASCADE)

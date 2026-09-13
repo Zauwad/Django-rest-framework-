@@ -4,6 +4,7 @@ from rest_framework import generics, mixins, status                    # Imports
 from rest_framework.views import APIView                    # Imports APIView class for class-based views
 from rest_framework import viewsets
 from django.shortcuts import get_object_or_404
+from django.core.exceptions import ValidationError
 
 from watchlist_app.api.serializers import ReviewSerializer, StreamPlatformSerializer, WatchListSerializer                    # Imports MovieSerializer, outputs serializer class definition
 from watchlist_app.models import Review, StreamPlatform, WatchList                    # Imports Movie model, outputs Django model class definition
@@ -180,12 +181,21 @@ class ReviewDetail(generics.RetrieveUpdateDestroyAPIView):
 class ReviewCreate(generics.CreateAPIView):
     serializer_class = ReviewSerializer
 
+    def get_queryset(self): # had to create this cause of using validationerror. This is mandatory for the validationerror to work properly. Just normal django stuff.
+        return Review.objects.all()
+
     def perform_create(self, serializer):
         pk = self.kwargs.get("pk") #gets the primary key of the watchlist(movie) from the url 
         specific_movie = WatchList.objects.get(pk=pk) #gets the watchlist object(movie) based on the primary key
 
-        serializer.save(watchlist=specific_movie) #saves the review object only for the specific watchlist(movie) so as to not create reviews for other movies
+        user = self.request.user
+        review_user_queryset = Review.objects.filter(watchlist=specific_movie, review_user=user)
+        if review_user_queryset.exists(): #returns true if there's anything in the review_user_queryset
+            raise ValidationError("User already added review for this movie")
+
+        serializer.save(watchlist=specific_movie, review_user=user) #saves the review object only for the specific watchlist(movie) so as to not create reviews for other movies
                                                   # defined that watchlist = specific_movie, so watchlist parameter will be filled auto
+                                                  # review_user = user, so review_user parameter will be filled auto
 
 
 
@@ -218,7 +228,8 @@ class ReviewCreate(generics.CreateAPIView):
 
 
 #* This is ModelViewSet for simple router. It handles all the methods (List, Retrieve, Create, Update, Delete) automatically.
-class StreamPlatformModelViewSet(viewsets.ModelViewSet):    #
+class StreamPlatformModelViewSet(viewsets.ModelViewSet):    #Another one is ReadOnlyModelViewSet
         queryset = StreamPlatform.objects.all()
         serializer_class = StreamPlatformSerializer
+
 

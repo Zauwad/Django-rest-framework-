@@ -24,7 +24,7 @@ class WatchList(models.Model):                    # Model class representing Mov
         return str(self.title)                    # Returns movie name string, representing instance in admin panels/logs
 
 
-
+ 
 class Review(models.Model):
     rating = models.PositiveIntegerField(validators=[MinValueValidator(1), MaxValueValidator(5)])
     description = models.CharField(max_length=200, null=True)

@@ -200,3 +200,83 @@ pbkdf2_sha256$1200000$uAdDc8LTDCYvqYkfcf0BZU$Ai2IGXXeWVr2MC3v6LKf22xDyO8w8tzg9cQ
 #### **When to use each:**
 * **Use WSGI (Sync):** Standard CRUD APIs (like movie watchlists, reviews, accounts), forms, and standard admin panels.
 * **Use ASGI (Async):** Real-time WebSockets (chat, live notifications), long-polling, or views waiting on slow 3rd-party network calls (OpenAI/Gemini APIs, payment webhooks).
+
+---
+
+### **6. Multi-Process vs. Multi-Threaded Configuration in Gunicorn**
+
+You configure workers and threads directly via Gunicorn CLI arguments or in `gunicorn.conf.py`.
+
+#### **CLI Commands:**
+* **Multi-Process Only (e.g. 6 workers, 1 thread each):**
+  ```bash
+  gunicorn core.wsgi:application --workers 6 --threads 1
+  # (or simply: gunicorn core.wsgi:application -w 6)
+  ```
+* **Multi-Threaded (e.g. 2 workers, 3 threads each = 6 concurrent slots):**
+  ```bash
+  gunicorn core.wsgi:application --workers 2 --threads 3
+  ```
+
+#### **Trade-Offs (Memory vs. Isolation):**
+
+| Feature | **Multi-Process Only** (`-w 6 -t 1`) | **Multi-Threaded** (`-w 2 -t 3`) |
+| :--- | :--- | :--- |
+| **RAM Usage** | **High** (6 separate Python processes in memory, each loading Django & dependencies) | **Low** (Only 2 Python processes; the 3 threads share memory) |
+| **Crash Isolation** | **Total isolation**: If Worker 1 crashes or leaks memory, the other 5 are unaffected | **Shared risk**: If Worker 1 crashes (e.g. segfault), all 3 threads inside it die together |
+| **Python GIL Impact** | No GIL contention; each process runs on its own CPU core independently | Threads within a worker share the Python GIL (great for I/O waiting, not for heavy CPU math) |
+
+#### **Decision Rule:**
+* **Use Multi-Process Only:** When the server has ample RAM (e.g. 8GB+), CPU-bound tasks (image processing, data crunching), or when strict process isolation is critical.
+* **Use Multi-Threaded:** When running on budget/low-memory servers (e.g. 1GB–2GB RAM) and handling I/O-bound requests (waiting on database queries or external HTTP APIs).
+
+---
+
+### **7. ASGI Worker Architecture & The Event Loop**
+
+```
+[ Web Server (e.g., Uvicorn) ]
+   ├── Worker 1 (python.exe process)
+   │     └── [ Main Thread ] ───► Runs Asyncio Event Loop
+   └── Worker 2 (python.exe process)
+         └── [ Main Thread ] ───► Runs Asyncio Event Loop
+```
+
+#### **Why "Thread" vs. "Worker" in ASGI?**
+* When running an ASGI server like Uvicorn, you can launch multiple **worker processes** (e.g. `uvicorn --workers 4`).
+* **Inside each worker process, there is only ONE thread running the `asyncio` event loop.**
+* If a request on **Worker 1** runs blocking code (such as `time.sleep(2)` or an un-awaited sync DB query):
+  * The **single thread** driving Worker 1's event loop freezes completely.
+  * **Every user currently connected to Worker 1 is frozen for 2 seconds.** (Users on Worker 2, 3, or 4 remain unaffected).
+
+#### **Why does an Async Worker use only ONE thread?**
+* **Cooperative Multitasking:** Instead of paying the memory and context-switching overhead of thousands of OS threads, a single thread jumps from one paused task (`await`) to another when I/O completes.
+* **The Catch:** Because there is only one thread juggling tasks, blocking it without `await` freezes the entire juggling act for that worker.
+
+---
+
+### **8. Server-Sent Events (SSE)**
+
+#### **Communication Models Comparison:**
+```
+1. Standard HTTP:   Client ──[ Request ]──► Server ──[ Response ]──► (Connection CLOSED)
+
+2. WebSockets:      Client ◄═════════ [ Two-way continuous socket ] ═════════► Server
+
+3. SSE:             Client ──[ Connect once ]──► Server ════[ Stream of events ]════► Client
+```
+
+#### **What is SSE?**
+* A standard where a browser opens a standard HTTP request with `Accept: text/event-stream`, and the server keeps the connection open indefinitely to push live updates down to the client.
+* **One-Way Streaming:** Server $\rightarrow$ Client only.
+* **Native Browser Support:** Handled directly via the browser's JavaScript `EventSource` API (`const evtSource = new EventSource('/stream')`).
+
+#### **Real-World Use Cases:**
+* **LLM Output Streaming:** Real-time token streaming from ChatGPT, Claude, or Gemini as words are generated.
+* **Live Feeds:** Real-time stock/crypto price tickers and live sports scores.
+* **Progress Tracking:** Watching live build logs in CI/CD pipelines.
+
+#### **Why use SSE instead of WebSockets?**
+* **Runs over Plain HTTP:** No special protocols (`ws://`), proxy gymnastics, or firewall port issues.
+* **Automatic Reconnection:** The browser’s `EventSource` automatically reconnects if the network drops.
+* **Simpler & Lighter:** When the client only needs to receive updates without sending data back on the same connection, WebSockets are unnecessary overhead.
